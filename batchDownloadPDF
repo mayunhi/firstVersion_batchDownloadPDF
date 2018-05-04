@@ -1,0 +1,62 @@
+#!/usr/bin/python
+# -*- coding:utf-8 -*-
+import urllib              #导入urllib模块
+import urllib2             #导入urllib2模块 
+import re               #导入正则表达式模块：re模块 
+  
+def getPDFFromNet(inputURL): 
+  req = urllib2.Request(inputURL) 
+  f = urllib2.urlopen(req)         #打开网页 
+  localDir = 'D:\downloadPDF\\'        #下载PDF文件需要存储在本地的文件夹 
+  #尤其注意！！！：需要在localDir变量指示的路径下新建downloadPDF文件夹，以承载生成的pdf文档
+  #注意！！！在Sublime软件中使用python功能：
+  	#前提：下载安装python并配置好环境变量。
+  	#方法：点击Sublime的菜单栏中的工具 —> 编译系统，勾选Python即可；创建target.py文件，Ctrl+S保存文件，Ctrl+B执行target.py文件。
+
+  urlList = []            #用来存储提取的PDF下载的url的列表 
+  for eachLine in f:          #遍历网页的每一行 
+    #print(eachLine)
+    line = eachLine.strip()       #去除行首位的空格，习惯性写法 
+    #print(line)
+    if re.match('.*PDF.*', line):      #去匹配含有“PDF”字符串的行，只有这些行才有PDF下载地址 
+      wordList = line.split('\"')    #以"为分界，将该行分开，这样就将url地址单独分开了 
+      #print(wordList)
+      for word in wordList:      #遍历每个字符串 
+        if re.match('.*\.pdf$', word): #去匹配含有“.pdf”的字符串，只有url中才有 
+          print(word)
+          urlList.append(word)  #将提取的url存入列表 
+  #print(urlList)---OK
+  for everyURL in urlList:         #遍历列表的每一项，即每一个PDF的url 
+    wordItems = everyURL.split('/')     #将url以/为界进行划分，为了提取该PDF文件名 
+    #print(wordItems)
+    for item in wordItems:       #遍历每个字符串 
+      if re.match('.*\.pdf$', item):   #查找PDF的文件名 
+        PDFName = item     #查找到PDF文件名 
+        #print(PDFName)
+        #print("PDFName" + PDFName)---ok
+    localPDF = localDir + PDFName      #将本地存储目录和需要提取的PDF文件名进行连接 
+    #print(localPDF)---ok
+    #print(everyURL)---ok
+    print(localPDF)
+    print(everyURL)
+    try:  
+        #print("urlretrieve")---ok          
+        #urllib.urlretrieve(everyURL, localPDF, reporthook=reporthook)----tips：'reporthook' is not defined----reporthook是个待完成code的回调函数，当连接上服务器、以及相应的数据块传输完毕的时候会触发该回调。
+        urllib.urlretrieve(everyURL, localPDF) #按照url进行下载，并以其文件名存储到本地目录 
+        #print("urlretrieve——localPDF2")
+    except Exception as e:
+    	#print("e")----can print---ok
+    	print(e)
+    	continue
+#print("hi1")---ok    
+#getPDFFromNet('http://www.cvpapers.com/cvpr2014.html')---该以列表呈现pdf的网页调试ok
+#getPDFFromNet('http://www.ipcv.org/2014-cvpr/')---该以列表呈现pdf的网页调试ok
+#print("hi2")---ok
+#os.system("pause")
+getPDFFromNet('http://www.ipcv.org/2014-cvpr/')
+#getPDFFromNet('https://www.cbd.int/cop/')----不适配贾同学的目的网址？待解决
+#可能原因：
+    #0、你的网址虽然跟样例网址都是http网页（该代码适配https网页可能有问题）
+	#1、你的目的网址没有看到pdf（pdf是正则匹配的关键字）关键字。所以样例的正则匹配适配你的目的网址会有问题
+	#2、对比发现，样例的网址（试验了2个：http://www.cvpapers.com/cvpr2014.html和http://www.ipcv.org/2014-cvpr/）不需要翻墙。
+	  #接2：但贾同学提供的目的网址需翻墙才能访问（至少我这里需要翻墙才能访问）
